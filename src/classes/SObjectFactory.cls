@@ -12,16 +12,18 @@ public class SObjectFactory
     }
     public static List<sObject> build(Integer recordCount, Schema.SObjectType objectType, Map<Schema.SObjectField, Object> fieldToValue)
     {
+        Map<Schema.SObjectField, Object> fieldMap = RequiredFieldsCache.get(objectType);
+        if (fieldToValue != null) fieldMap.putAll(fieldToValue);
+        
         List<sObject> records = new List<sObject>();
         for (Integer i = 0; i < recordCount; i++)
         {
+            fieldMap.putAll(UniqueFieldsCache.get(objectType));
+            
             sObject record = objectType.newSObject();
-            if (fieldToValue != null)
+            for (Schema.SObjectField field : fieldMap.keySet())
             {
-                for (Schema.SObjectField field : fieldToValue.keySet())
-                {
-                    record.put(field, fieldToValue.get(field));
-                }
+                record.put(field, fieldMap.get(field));
             }
             records.add(record);
         }
@@ -44,4 +46,36 @@ public class SObjectFactory
         return records;
     }
     
+    public static List<sObject> build(Schema.SObjectType objectType, Schema.SObjectField field, List<Object> values)
+    {
+        List<sObject> records = new List<sObject>();
+        for (Object value : values)
+        {
+            records.add(build(objectType, new Map<Schema.SObjectField, Object> { field => value }));
+        }
+        return records;
+    }
+    public static List<sObject> build(Schema.SObjectType objectType, Schema.SObjectField field, List<Object> values, Map<Schema.SObjectField, Object> fieldToValue)
+    {
+        Integer recordCount = values.size();
+        List<sObject> records = build(recordCount, objectType, fieldToValue);
+        for (Integer i = 0; i < recordCount; i++)
+        {
+            records[i].put(field, values[i]);
+        }
+        return records;
+    }
+    
+    public static List<sObject> create(Schema.SObjectType objectType, Schema.SObjectField field, List<Object> values)
+    {
+        List<sObject> records = build(objectType, field, values);
+        insert records;
+        return records;
+    }
+    public static List<sObject> create(Schema.SObjectType objectType, Schema.SObjectField field, List<Object> values, Map<Schema.SObjectField, Object> fieldToValue)
+    {
+        List<sObject> records = build(objectType, field, values, fieldToValue);
+        insert records;
+        return records;
+    }
 }

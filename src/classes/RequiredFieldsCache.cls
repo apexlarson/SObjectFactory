@@ -21,11 +21,27 @@ public class RequiredFieldsCache
         {
             Group.Name => 'Some group'
         },
+        Account.sObjectType => new Map<Schema.SObjectField, Object>
+        {
+            Account.Name => 'Some account'
+        },
         Opportunity.sObjectType => new Map<Schema.SObjectField, Object>
         {
             Opportunity.StageName => 'Stage',
             Opportunity.Name => 'Some opportunity',
             Opportunity.CloseDate => Date.today().addMonths(1)
         },
+        User.sObjectType => new Map<Schema.SObjectField, Object>
+        {
+            User.IsActive => true,
+            User.LastName => 'Doe',
+            User.LocaleSidKey => 'en_US',
+            User.LanguageLocaleKey => 'en_US',
+            User.EmailEncodingKey => 'ISO-8859-1',
+            User.Email => 'testxxx000' +'@test.com',
+            User.TimeZoneSidKey => 'America/New_York',
+            
+            User.ProfileId => GenericIdCache.get(Profile.sObjectType)
+        }
     };
 }

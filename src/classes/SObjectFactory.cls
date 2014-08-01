@@ -6,9 +6,17 @@ public class SObjectFactory
     {
         return build(recordCount, objectType, null);
     }
+    public static sObject build(Schema.SObjectType objectType, Schema.SObjectField field, Object value)
+    {
+        return build(objectType, new Map<Schema.SObjectField, Object> { field => value });
+    }
     public static sObject build(Schema.SObjectType objectType, Map<Schema.SObjectField, Object> fieldToValue)
     {
         return build(1, objectType, fieldToValue)[0];
+    }
+    public static List<sObject> build(Integer recordCount, Schema.SObjectType objectType, Schema.SObjectField field, Object value)
+    {
+        return build(recordCount, objectType, new Map<Schema.SObjectField, Object> { field => value });
     }
     public static List<sObject> build(Integer recordCount, Schema.SObjectType objectType, Map<Schema.SObjectField, Object> fieldToValue)
     {
@@ -35,9 +43,17 @@ public class SObjectFactory
     {
         return create(recordCount, objectType, null);
     }
+    public static sObject create(Schema.SObjectType objectType, Schema.SObjectField field, Object value)
+    {
+        return create(objectType, new Map<Schema.SObjectField, Object> { field => value });
+    }
     public static sObject create(Schema.SObjectType objectType, Map<Schema.SObjectField, Object> fieldToValue)
     {
         return create(1, objectType, fieldToValue)[0];
+    }
+    public static List<sObject> create(Integer recordCount, Schema.SObjectType objectType, Schema.SObjectField field, Object value)
+    {
+        return create(recordCount, objectType, new Map<Schema.SObjectField, Object> { field => value });
     }
     public static List<sObject> create(Integer recordCount, Schema.SObjectType objectType, Map<Schema.SObjectField, Object> fieldToValue)
     {

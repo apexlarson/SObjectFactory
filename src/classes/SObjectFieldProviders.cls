@@ -111,7 +111,7 @@ public class SObjectFieldProviders
         }
         public MultiParentProvider(List<SObject> parents)
         {
-            this(Pluck.ids(parents));
+            this(pluckIds(parents));
         }
     }
     
@@ -157,5 +157,12 @@ public class SObjectFieldProviders
             }
             return queriedParentId;
         }
+    }
+
+    static Set<Id> pluckIds(List<SObject> records)
+    {
+        Map<Id, SObject> recordMap = new Map<Id, SObject>();
+        recordMap.putAll(records);
+        return recordMap.keySet();
     }
 }

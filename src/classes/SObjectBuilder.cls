@@ -1,92 +1,61 @@
 @IsTest
 public class SObjectBuilder
 {
-    final Schema.SObjectType sObjectType;
-    final Map<Schema.SObjectField, Object> fieldToValue;
-    
-    Integer recordCount;
-    
-    Schema.SObjectField additionalField;
-    List<Object> additionalFieldValues;
-    
-    List<sObject> records;
-    
-    public SObjectBuilder(Schema.SObjectType sObjectType)
-    {
-        this.sObjectType = sObjectType;
-        this.fieldToValue = new Map<Schema.SObjectField, Object>();
-    }
-    public SObjectBuilder count(Integer recordCount)
-    {
-        this.recordCount = recordCount;
-        return this;
-    }
-    public SObjectBuilder put(Schema.SObjectField field, Object value)
-    {
-        this.fieldToValue.put(field, value);
-        return this;
-    }
-    public SObjectBuilder putAll(Map<Schema.SObjectField, Object> fieldMap)
-    {
-        this.fieldToValue.putAll(fieldMap);
-        return this;
-    }
-    public SObjectBuilder addValues(Schema.SObjectField field, List<Object> values)
-    {
-        this.additionalField = field;
-        this.additionalFieldValues = values;
-        return this;
-    }
-    
-    Boolean isPlural { get { return recordCount != null && recordCount > 1; } }
-    Boolean hasValues { get { return !fieldToValue.isEmpty(); } }
-    Boolean hasAdditionalValues
-    {
-        get
-        {
-            return additionalField != null &&
-                additionalFieldValues != null &&
-                !additionalFieldValues.isEmpty();
-        }
-    }
-    public SObjectBuilder build()
-    {
-        records = new List<sObject>();
-        if (hasValues)
-        {
-            if (hasAdditionalValues)
-                records.addAll(SObjectFactory.build(sObjectType, additionalField, additionalFieldValues, fieldToValue));
-            else if (isPlural)
-                records.addAll(SObjectFactory.build(recordCount, sObjectType, fieldToValue));
-            else
-                records.add(SObjectFactory.build(sObjectType, fieldToValue));
-        }
-        else
-        {
-            if (hasAdditionalValues)
-                records.addAll(SObjectFactory.build(sObjectType, additionalField, additionalFieldValues));
-            else if (isPlural)
-                records.addAll(SObjectFactory.build(recordCount, sObjectType));
-            else
-                records.add(SObjectFactory.build(sObjectType));
-        }
-        
-        return this;
-    }
-    public SObjectBuilder create()
-    {
-        build();
-        insert records;
-        return this;
-    }
-    
-    public sObject getRecord()
-    {
-        if (records == null || records.isEmpty()) return null;
-        return records[0];
-    }
-    public List<sObject> getRecords()
-    {
-        return (records == null) ? new List<sObject>() : records;
-    }
+	final List<SObject> records;
+	final SObjectType sObjectType;
+	final Map<SObjectField, Object> fieldToValue;
+
+	Integer count;
+
+	public SObjectBuilder(SObjectType sObjectType)
+	{
+		this.count = 1;
+		this.sObjectType = sObjectType;
+		this.records = new List<SObject>();
+		this.fieldToValue = new Map<SObjectField, Object>();
+	}
+
+	public SObjectBuilder count(Integer count)
+	{
+		this.count = count;
+		return this;
+	}
+
+	public SObjectBuilder put(SObjectField field, Object value)
+	{
+		this.fieldToValue.put(field, value);
+		return this;
+	}
+	public SObjectBuilder putAll(Map<SObjectField, Object> fieldToValue)
+	{
+		this.fieldToValue.putAll(fieldToValue);
+		return this;
+	}
+	public SObjectBuilder provideDummyIds()
+	{
+		SObjectField idField = this.sObjectType.getDescribe().fields.getMap().get('id');
+		this.put(idField, SObjectFactory.provideDummyId(this.sObjectType));
+		return this;
+	}
+
+	public SObjectBuilder build()
+	{
+		this.records.clear();
+		this.records.addAll(SObjectFactory.build(sObjectType, count, fieldToValue));
+		return this;
+	}
+	public SObjectBuilder create()
+	{
+		this.records.clear();
+		this.records.addAll(SObjectFactory.create(sObjectType, count, fieldToValue));
+		return this;
+	}
+	public SObjectBuilder createAsAdmin()
+	{
+		system.runAs(SObjectFactory.ADMIN_USER) { this.create(); }
+		return this;
+	}
+
+	public SObject getRecord() { return this.records[0]; }
+	public List<SObject> getRecords() { return this.records; }
 }
